@@ -3,6 +3,8 @@
 A Machine Learning–based web application that predicts whether an insurance claim is Fraudulent or Genuine using classification algorithms. The application is deployed using Streamlit for real-time predictions and visualization.
 
 LINK - https://insurance-fraud-detection-kmaufk6ugqutsntr6qvxc4.streamlit.app/
+
+
 📌 Project Overview
 
 Insurance fraud causes significant financial losses to companies every year. This project aims to detect potentially fraudulent claims using machine learning techniques and provide explainable predictions through an interactive web interface.
