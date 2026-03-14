@@ -11,23 +11,23 @@ Insurance fraud causes significant financial losses to companies every year. Thi
 
 🚀 Features
 
-📊 Exploratory Data Analysis (EDA)
+* Exploratory Data Analysis (EDA)
 
-⚙️ Feature Engineering & Data Preprocessing
+Feature Engineering & Data Preprocessing
 
-🔄 Handling Class Imbalance using SMOTE
+ Handling Class Imbalance using SMOTE
 
-🌲 Random Forest / XGBoost Model
+ Random Forest / XGBoost Model
 
-📈 Performance Metrics (Accuracy, Precision, Recall, F1-Score)
+ Performance Metrics (Accuracy, Precision, Recall, F1-Score)
 
-🌐 Streamlit Web Application
+Streamlit Web Application
 
-📉 Interactive Visualizations using Plotly
+ Interactive Visualizations using Plotly
 
-🔍 Real-time Fraud Prediction
+Real-time Fraud Prediction
 
-🛠️ Tech Stack
+ Tech Stack
 
 Python
 
