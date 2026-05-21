@@ -148,6 +148,11 @@ st.markdown("""
 
 st.markdown('<div class="main-header"><h1>RISKGUARD.ai</h1></div>', unsafe_allow_html=True)
 
+
+@st.cache_resource
+def load_model():
+    return joblib.load("fraud_model.pkl")
+
 # ---------------- INPUT SECTION ----------------
 with st.container():
     c1, c2, c3 = st.columns(3, gap="large")
@@ -157,20 +162,20 @@ with st.container():
         months = st.number_input("TENURE (MONTHS)", 0, 500, 120)
         age = st.slider("AGE", 18, 90, 35)
         premium = st.number_input("ANNUAL PREMIUM ($)", 0.0, 5000.0, 1200.0)
+        hour = st.slider("INCIDENT HOUR", 0, 23, 14)
         st.markdown('</div>', unsafe_allow_html=True)
 
     with c2:
         st.markdown('<div class="glass-card"><span class="section-label">02 // INCIDENT VECTORS</span>', unsafe_allow_html=True)
         claim_amt = st.number_input("TOTAL CLAIM ($)", 0.0, 100000.0, 15000.0)
-        severity = st.selectbox("IMPACT SEVERITY", ["Minor Damage", "Major Damage", "Total Loss"])
-        collision = st.selectbox("COLLISION TYPE", ["Front", "Rear", "Side"])
+        severity = st.selectbox("IMPACT SEVERITY", ["Trivial Damage", "Minor Damage", "Major Damage", "Total Loss"], index=2)
+        collision = st.selectbox("COLLISION TYPE", ["Front Collision", "Rear Collision", "Side Collision", "?"], index=2)
         st.markdown('</div>', unsafe_allow_html=True)
 
     with c3:
         st.markdown('<div class="glass-card"><span class="section-label">03 // FIELD DATA</span>', unsafe_allow_html=True)
         witnesses = st.select_slider("WITNESS COUNT", options=[0, 1, 2, 3])
-        police = st.radio("OFFICIAL REPORT", ["YES", "NO"], horizontal=True)
-        hour = st.slider("INCIDENT HOUR", 0, 23, 14)
+        police = st.radio("OFFICIAL REPORT", ["YES", "NO", "?"], horizontal=True)
         st.markdown('</div>', unsafe_allow_html=True)
 
 st.markdown("<br>", unsafe_allow_html=True)
@@ -182,10 +187,31 @@ if st.button("RUN NEURAL DIAGNOSTIC"):
         st.write("Running cross-validation against historic fraud nodes...")
         time.sleep(0.8)
         st.write("Finalizing risk probability...")
-        
-        # Logic Placeholder
-        fraud_prob = 74.2 if claim_amt > 20000 else 18.5
-        status.update(label="Analysis Complete", state="complete", expanded=False)
+
+        try:
+            model = load_model()
+
+            input_df = pd.DataFrame([
+                {
+                "months_as_customer": months,
+                "age": age,
+                "policy_annual_premium": premium,
+                "total_claim_amount": claim_amt,
+                "incident_severity": severity,
+                "collision_type": collision,
+                "witnesses": witnesses,
+                "police_report_available": police,
+                "incident_hour_of_the_day": hour,
+                }
+            ])
+
+            fraud_prob = float(model.predict_proba(input_df)[0, 1] * 100)
+            pred_label = int(model.predict(input_df)[0])
+            status.update(label="Analysis Complete", state="complete", expanded=False)
+        except Exception as e:
+            status.update(label="Analysis Failed", state="error", expanded=True)
+            st.error(f"Model inference failed: {e}")
+            st.stop()
 
     # ---------------- RESULTS ----------------
     r_col1, r_col2 = st.columns([1, 1], gap="large")
@@ -206,9 +232,9 @@ if st.button("RUN NEURAL DIAGNOSTIC"):
         st.markdown('<div class="glass-card" style="height: 100%;">', unsafe_allow_html=True)
         st.markdown('<span class="section-label">NEURAL REASONING</span>', unsafe_allow_html=True)
         
-        if fraud_prob > 50:
+        if pred_label == 1:
             st.error("⚠️ **Pattern Match:** High Correlation with 'Staged Collision' archetypes.")
-            st.markdown(f"- **Claim Ratio:** High ($ {claim_amt}) relative to tenure.")
+            st.markdown(f"- **Claim Load:** Total claim is $ {claim_amt:,.2f} with split across injury/property/vehicle components.")
             st.markdown("- **Witness Gaps:** Reported severity inconsistent with witness count.")
         else:
             st.success("✅ **Profile Verified:** Behavior aligns with standard historical claims.")
@@ -220,8 +246,14 @@ if st.button("RUN NEURAL DIAGNOSTIC"):
     st.markdown('<div class="glass-card">', unsafe_allow_html=True)
     st.markdown('<span class="section-label">FEATURE ATTRIBUTION MAP</span>', unsafe_allow_html=True)
     
-    features = ["Claim Amount", "Severity", "Witnesses", "Hour", "Tenure"]
-    importance = [45, 30, -20, 15, -10] if fraud_prob > 50 else [-15, -10, 25, 5, 30]
+    features = ["Total Claim", "Vehicle Count", "Injuries", "Witnesses", "Premium"]
+    importance = [
+        (claim_amt / 1000.0) - 25,
+        (2 if collision == "Front Collision" else 1 if collision == "Rear Collision" else 0) * 8 - 4,
+        (2 if severity == "Total Loss" else 1 if severity == "Major Damage" else 0) * 12 - 4,
+        10 - (witnesses * 7),
+        18 - (premium / 120.0),
+    ]
     
     fig = go.Figure(go.Bar(
         x=importance, y=features, orientation='h',

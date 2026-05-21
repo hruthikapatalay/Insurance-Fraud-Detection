@@ -1,0 +1,38 @@
+{
+  "selected_features": [
+    "months_as_customer",
+    "age",
+    "policy_annual_premium",
+    "total_claim_amount",
+    "incident_severity",
+    "collision_type",
+    "witnesses",
+    "police_report_available",
+    "incident_hour_of_the_day"
+  ],
+  "selected_model": "RandomForest",
+  "test_results": [
+    {
+      "model": "RandomForest",
+      "accuracy": 0.81,
+      "precision": 0.6037735849056604,
+      "recall": 0.6530612244897959,
+      "f1": 0.6274509803921569,
+      "roc_auc": 0.7871333964049196
+    },
+    {
+      "model": "XGBoost",
+      "accuracy": 0.77,
+      "precision": 0.5348837209302325,
+      "recall": 0.46938775510204084,
+      "f1": 0.5,
+      "roc_auc": 0.7305041221786728
+    }
+  ],
+  "cv_summary": {
+    "cv_accuracy_mean": 0.8030000000000002,
+    "cv_accuracy_std": 0.018330302779823324,
+    "cv_auc_mean": 0.7506387601928187,
+    "cv_auc_std": 0.034184185451047906
+  }
+}
